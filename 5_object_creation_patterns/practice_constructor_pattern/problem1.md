@@ -1,0 +1,1 @@
+A constructor function uses PascalCase syntax rather than camelCase.
