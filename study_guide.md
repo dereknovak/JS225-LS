@@ -4,22 +4,27 @@
 
 - [Objects]()
     - [Organizing Code]()
-    - [Object Factories]()
+    - [Object Factories](#object-factories)
 - [Execution Context]()
     - [this](#this)
     - [Implicit Execution Context](#implicit-context)
     - [Explicit Execution Context](#execution-context)
-    - [Context Loss]()
+    - [Context Loss](#context-loss)
     - [Lexical Scope]()
 - [Scope and Closures]()
     - [Higher-order Functions](#higher-order-functions)
     - [Private Data](#private-data)
-    - [Garbage Collection]()
+    - [Garbage Collection](#garbage-collection)
     - [IIFEs](#iifes)
     - [Partial Function Application](#partial-function-application)
-- [Object Creation Patterns]()
-    - [Constructor Function]()
-    - [Pseudo-Classical Pattern]()
+- [Object Creation Patterns](#object-creation-patterns)
+    - [Constructor Function](#constructor-functions)
+        - [new keyword](#new-keyword)
+    - [Pseudo-Classical Pattern](#pseudo-classical-pattern)
+        - [Prototype Property](#prototype-property)
+        - [Prototype](#prototype);
+        - [Constructor Property](#constructor-property)
+        - [Inheritance](#inheritance)
     - [Class syntax]()
     - [Prototypal Objects]()
     - [Behavior Delegation]()
@@ -82,6 +87,38 @@ console.log(kitty.walk()); // Cat objects can now use walk() from the mixin
     - https://medium.com/launch-school/javascript-weekly-an-introduction-to-first-class-functions-9d069e6fb137
 - JavaScript Weekly: What in the World is this?!
     - https://medium.com/launch-school/what-in-the-world-is-this-be803a85ed47
+
+# Objects
+
+## Object Factories
+
+- **Object Factories**, also known as *factory functions*, are functions that return copies of an object with unique state, reducing overall redundancy in the codebase.
+
+### Pros
+- Reduces redundancy in code, especially when many similar objects are used.
+- Simple and easy to understand
+- Can use private data via closures
+
+### Cons
+- Cannot determine whether an object was built from an object factory
+- All methods shared by the objects are copies of the original function, increasing memory usage.
+- Inheritance is not straightforward
+
+```js
+function makeCar(make, model) {
+  return {
+    make,
+    model,
+
+    honk() {
+      return 'Beep!';
+    },
+  }
+}
+
+const honda = makeCar('Honda', 'Civic');
+const toyota = makeCar('Toyota', 'Camry');
+```
 
 # Execution Context
 
@@ -182,9 +219,14 @@ person.count(1, 5);              // Jimmy is counting from 1-5. (unaffected)
 
 ## Context Loss
 
+1. Invoking a function that has been removed from its original object
+2. Invoking a nested function
+3. Invoking a function passed as an argument
+
 1. Arrow Notation
 2. Assign `this` to a variable
-3. Pass `this` as an argument
+3. Optional `thisArg` argument
+4. Explicit Context Execution
 
 ```js
 const cookieMonster = {
@@ -204,6 +246,8 @@ cookieMonster.eat(['Peanut Butter', 'Chocolate Chip']);
 ### 1
 
 ```js
+// Arrow Notation
+
 const cookieMonster = {
   name: 'Cookie Monster',
   eat(cookies) {
@@ -217,6 +261,8 @@ const cookieMonster = {
 ### 2
 
 ```js
+// Variable Assignment
+
 const cookieMonster = {
   name: 'Cookie Monster',
   eat(cookies) {
@@ -231,6 +277,8 @@ const cookieMonster = {
 ### 3
 
 ```js
+// Optional `thisArg` argument
+
 const cookieMonster = {
   name: 'Cookie Monster',
   eat(cookies) {
@@ -239,6 +287,25 @@ const cookieMonster = {
     }, this);
   },
 };
+```
+
+## 4
+
+```js
+// Explicit Execution Context
+
+const cookieMonster = {
+  name: 'Cookie Monster',
+  eat(cookies) {
+    const logCookies = function(cookie) {
+      console.log(`${this.name} eats the ${cookie} cookie!`);
+    }.bind(this);
+
+    cookies.forEach(logCookies);
+  },
+};
+
+cookieMonster.eat(['Peanut Butter', 'Chocolate Chip']);
 ```
 
 # Scope and Closures
@@ -290,6 +357,27 @@ fireBow1(); // You have 0 left
 fireBow1(); // Empty
 ```
 
+## Garbage Collection
+
+- Data is eligable for **garbage-collection**, a built-in JavaScript mechanism that frees up memory space by removing obsolete information in memory, once all references to the data within the program have been severed.
+
+- Variables that are referenced within a closure cannot be eligable for garbage-collection.
+
+```js
+function makeCounter() {
+  let count = 1;  // Not garbage collected until `counter` is reassigned
+
+  return function() {
+    console.log(count++);
+  }
+}
+
+const counter = makeCounter();
+counter();  // 1
+counter();  // 2
+```
+> Although the invocation of `makeCounter` is concluded on line 9, the anonymous function returned from the invocation is assigned to `counter`. Because the anonymous function relies on `count` in its scope, the variable is added to its closure and is therefore not eligable for garbage collection.
+
 ## IIFEs
 
 - **Immediately Invoked Function Expressions** (IIFEs) are functions that are immediately invoked upon defintion, allowing an isolated scope containing variables and functions to be made and executed without fear of polluting the global scope.
@@ -334,3 +422,168 @@ sayHello('Derek');   // Hello, Derek
 sayGoodbye('Josh');  // Goodbye, Josh
 ```
 
+# Object Creation Patterns
+
+## Constructor Functions
+
+- **Constructor Functions** are functions that are used to instantiate objects that inherit similar attributes and behaviors.
+
+```js
+function Musician(instrument) {
+  this.instrument = instrument;
+}
+
+const derek = new Musician('clarinet');
+```
+>The constructor function `Musician` is used to instantiate the `derek` object.
+
+### new Keyword
+
+- While the `new` keyword used with constructor functions is not manditory, it is *highly recommended* as its absence may cause unexpected results.
+
+- The `new` keyword instructs JavaScript to do the following:
+
+1. Creates a new object that inherits from the constructor function's prototype property.
+2. Binds the new object to the `this` keyword
+3. Return the object after invocation
+
+```js
+function Musician(instrument) {
+  this.instrument = instrument;
+}
+
+// Invoked with the `new` keyword
+
+function Musician(instrument) {
+  const that = Object.create(Musician.prototype);
+  that.instrument = instrument;
+  return that;
+}
+```
+
+## Pseudo-Classical Pattern
+
+- The **Pseudo-Classical Pattern** in JavaScript is a combination of the *Constructor Pattern* and the *Prototype Pattern* by instantiating objects via constructor functions and developing attributes and behaviors through inheritance.
+
+```js
+function Musician(name, instrument) {
+  this.name = name;
+  this.instrument = instrument;
+}
+
+Musician.prototype.play = function() {
+  console.log(`${this.name} is playing their ${this.instrument}!`);
+}
+
+function Clarinetist(name, model) {
+  Musician.call(this, name, 'clarinet');
+  this.model = model;
+}
+
+Object.setPrototypeOf(Clarinetist.prototype, Musician.prototype);
+
+const derek = new Clarinetist('Derek', 'Buffet R13');
+derek.play();  // Derek is playing their clarinet!
+```
+
+### Prototype Property
+
+- The **prototype property** is a built-in property default with *any* JavaScript function. This property houses all shared behaviors for the constructor function, a `[[Prototype]]` property that points to its own prototype, and a `constructor` property that points back to the constructor function itself.
+
+- Arrow function do not have a prototype property.
+- Object literals do not have a prototype property
+
+```js
+function Musician(name, instrument) {
+  this.name = name;
+  this.instrument = instrument;
+}
+
+Musician.prototype.play = function() {
+  console.log(`${this.name} is playing their ${this.instrument}!`);
+};
+
+/*
+Musician (Constructor) = {
+  prototype: {
+    play: [Function: play],
+    [[Prototype]]: Object.prototype,
+    constructor: [Function: Musician],
+  },
+}
+
+Musician (instance) = {
+  name: (value),
+  instrument: (value),
+  [[Prototype]]: Musician.prototype
+}
+*/
+```
+
+### [[Prototype]]
+
+- The `[[Prototype]]` property is built-in with every object in JavaScript and references the object's prototype.
+- Use `Object.getPrototypeOf` to find immediate relative on prototype chain.
+- Use `Object.prototype.isPrototypeOf` to see if an object is anywhere on the prototype chain.
+
+- Prototype references:
+1. Constructor Function => Function.prototype
+2. Constructor.prototype => Parent.prototype
+3. Constructor Instance => Constructor.prototype
+
+```js
+function Musician(name, instrument) {
+  this.name = name;
+  this.instrument = instrument;
+}
+
+Object.getPrototypeOf(Musician);                           // Function.prototype;
+Object.getPrototypeOf(Musician.prototype);                 // Object.prototype;
+Object.getPrototypeOf(new Musician('Derek', 'clarinet'));  // Musician.prototype;
+```
+
+### Constructor Property
+
+- The `constructor` property is used to determine the function that builds the object.
+
+- Constructor references:
+1. Constructor Function => `[Function: Function]`
+2. Constructor.prototype => Constructor Function
+3. Constructor Instance => Constructor Function
+
+```js
+function Musician(name, instrument) {
+  this.name = name;
+  this.instrument = instrument;
+}
+
+Musician.constructor;                           // [Function: Function]
+Musician.prototype.constructor;                 // [Function: Musician]
+new Musician('Derek', 'clarinet').constructor;  // [Function: Musician]
+```
+
+### Inheritance
+
+- To inherit the attributes of a parent class, we can use the `call` function and include `this` as its context. This will invoke the desired constructor function and assign all properties of `this`.
+
+```js
+function Clarinetist(name, model) {
+  Musician.call(this, name, 'clarinet');
+      // this.name = name;
+      // this.instrument = 'clarinet'
+  this.model = model;
+}
+```
+
+- To inherit the behaviors of a parent class, we must assign the prototype property of the given constructor function to the desired constructor function's prototype property.
+
+```js
+Object.setPrototypeOf(Clarinetist.prototype, Musician.prototype);
+
+//  Clarinetist {
+//    prototype: {
+//      Musician.prototype: {play}
+//    }
+//  }
+```
+>Clarinetist.prototype => Musician.prototype => play()
