@@ -22,13 +22,23 @@
         - [new keyword](#new-keyword)
     - [Pseudo-Classical Pattern](#pseudo-classical-pattern)
         - [Prototype Property](#prototype-property)
-        - [Prototype](#prototype);
+        - [Prototype](#prototype)
         - [Constructor Property](#constructor-property)
         - [Inheritance](#inheritance)
-    - [Class syntax]()
+    - [Class Syntax](#class-syntax)
+        - [Constructor Method](#constructor-method)
+        - [Instance Methods](#instance-methods)
+        - [Static Properties](#static-properties)
+        - [Getters](#getters)
+        - [Setters](#setters)
+    - [Encapsulation](#encapsulation)
     - [Prototypal Objects]()
     - [Behavior Delegation]()
-- [Modules]()
+        - [Prototype Chain]()
+        - [super]()
+- [Modules](#modules)
+    - [CommonJS](#commonjs)
+        - [Variables](#variables)
 
 # Study Guide
 
@@ -219,10 +229,12 @@ person.count(1, 5);              // Jimmy is counting from 1-5. (unaffected)
 
 ## Context Loss
 
+- Scenarios
 1. Invoking a function that has been removed from its original object
 2. Invoking a nested function
 3. Invoking a function passed as an argument
 
+- Fixes
 1. Arrow Notation
 2. Assign `this` to a variable
 3. Optional `thisArg` argument
@@ -243,11 +255,9 @@ cookieMonster.eat(['Peanut Butter', 'Chocolate Chip']);
 // undefined eats the Chocolate Chip cookie!
 ```
 
-### 1
+### Arrow Notation
 
 ```js
-// Arrow Notation
-
 const cookieMonster = {
   name: 'Cookie Monster',
   eat(cookies) {
@@ -258,11 +268,9 @@ const cookieMonster = {
 };
 ```
 
-### 2
+### Variable Assignment
 
 ```js
-// Variable Assignment
-
 const cookieMonster = {
   name: 'Cookie Monster',
   eat(cookies) {
@@ -274,11 +282,9 @@ const cookieMonster = {
 };
 ```
 
-### 3
+### Optional thisArg
 
 ```js
-// Optional `thisArg` argument
-
 const cookieMonster = {
   name: 'Cookie Monster',
   eat(cookies) {
@@ -289,11 +295,9 @@ const cookieMonster = {
 };
 ```
 
-## 4
+### Explicit Execution Context
 
 ```js
-// Explicit Execution Context
-
 const cookieMonster = {
   name: 'Cookie Monster',
   eat(cookies) {
@@ -567,6 +571,11 @@ new Musician('Derek', 'clarinet').constructor;  // [Function: Musician]
 - To inherit the attributes of a parent class, we can use the `call` function and include `this` as its context. This will invoke the desired constructor function and assign all properties of `this`.
 
 ```js
+function Musician(name, instrument) {
+  this.name = name;
+  this.instrument = instrument;
+}
+
 function Clarinetist(name, model) {
   Musician.call(this, name, 'clarinet');
       // this.name = name;
@@ -587,3 +596,241 @@ Object.setPrototypeOf(Clarinetist.prototype, Musician.prototype);
 //  }
 ```
 >Clarinetist.prototype => Musician.prototype => play()
+
+## Class Syntax
+
+- Because JavaScript Object Oriented Programming utilizes prototypal inheritance rather than class inheritance, the `class` keyword actually acts as *syntactic sugar* to make it more approachable to programmers more familiar with classical syntax from other languages.
+
+```js
+class Musician {
+  constructor(name, instrument) {
+    this.name = name;
+    this.instrument = instrument;
+  }
+
+  play() {
+    console.log(`${this.name} is playing their ${this.instrument}!`);
+  }
+}
+
+class Clarinetist extends Musician {
+  constructor(name, model) {
+    super(name, 'clarinet');
+    this.model = model;
+  }
+}
+
+const derek = new Clarinetist('Derek', 'Buffet R13');
+derek.play();  // Derek is playing their clarinet!
+```
+
+### Constructor Method
+
+- The `constructor` method is used as syntactic sugar for calling the constructor function when instantiating a new object.
+
+```js
+class Musician {
+  constructor(name, instrument) {
+    this.name = name;
+    this.instrument = instrument;
+  }
+}
+
+// Same as
+
+function Musician(name, instrument) {
+  this.name = name;
+  this.instrument = instrument;
+}
+```
+
+### Instance Methods
+
+- Rather than directly assigning methods to the constructor function's prototype property, classical syntax allows programmers to add instance methods, or methods of the prototype, directly within the class structure. Under the hood, JavaScript will automatically place these methods within the prototype property, allowing for easier read code.
+
+- Instance methods are *not* separated by comas.
+
+```js
+class Musician {
+  play() {
+    console.log('Playing');
+  }
+
+  breathe() {
+    console.log('Breathing');
+  }
+}
+
+// Same as
+
+Musician.prototype.play = function() {
+  console.log('Playing');
+};
+
+Musician.prototype.breathe = function() {
+  console.log('Breathing');
+};
+```
+
+### Static Properties
+
+- JavaScript employs **static properties** by adding attributes or behaviors *directly* to the constructor function in pseudo-classical notation or by using the keyword `static` in classical notation.
+
+```js
+// Pseudo-Classical
+
+function Musician() {
+}
+
+Musician.tuningNote = 'A';
+Musician.transpose = function(music, startKey, endKey) {
+  return 'Transposing';
+}
+
+// Classical
+
+class Musician {
+  static tuningNote = 'A';
+  static transpose(music, startKey, endKey) {
+    return 'Transposing';
+  }
+}
+```
+
+### Getters
+
+- JavaScript classical pattern allows getters to be made to more carefully access data within a class. While the getter is defined as a method inside the class structure, it can be accessed via standard property dot notation outside of it.
+
+```js
+class Person {
+  #firstName;
+  #lastName;
+
+  constructor(firstName, lastName) {
+    this.#firstName = firstName;
+    this.#lastName = lastName;
+  }
+
+  get name() {
+    return `${this.#firstName} ${this.#lastName}`;
+  }
+}
+
+const george = new Person('George', 'Washington');
+george.name;  // George Washington
+```
+
+### Setters
+
+- JavaScript classical pattern allows for setters to be made to more carefully reassign data within a class. While the setter is defined as a method inside of the class structure, it can be employed using standard property reassignment notation.
+
+```js
+class Person {
+  #age;
+
+  constructor(age) {
+    this.#age = age;
+  }
+
+  set age(newAge) {
+    if (newAge > 0) {
+      return this.#age = newAge;
+    } else {
+      throw new RangeError('Age must be greater than 0');
+    }
+  }
+}
+
+const bob = new Person(28);
+bob.age = 29;  // 29
+bob.age = -2;  // RangeError: Age must be greater than 0
+```
+
+## Encapsulation
+
+- **Encapsulation** allows us to hide the data and functionality of an object from outside its respective class, exposing only the attributes and behaviors required by the users. In JavaScript, this can be achieved through the use of `#` alongside variable names in classical notation and with *closures* in pseudo-classical notation.
+
+- All private properties must be dictated at the top of the class.
+- The exception for attempting to access a private property will be thrown at compile time.
+- Using pseudo-classical notation is less memory efficient, as a copy of the getter method is created for every child of the constructor function.
+
+```js
+// Classical Notation
+
+class Person {
+  #ssn;
+
+  constructor(name, age, fullSSN) {
+    this.name = name;
+    this.age = age;
+    this.#ssn = fullSSN;
+  }
+
+  get ssn() {
+    return 'XXX-XX-' + String(this.#ssn).slice(5);
+  }
+}
+
+const derek = new Person('Derek', 30, 123456789);
+derek.name;  // Derek
+derek.age;   // 30
+derek.ssn;   // XXX-XX-6789
+derek.#ssn;  // SyntaxError: Private field '#ssn' must be declared in an enclosing class
+
+// Pseudo-Classical Notation
+
+function Person(name, age, ssn) {
+  this.name = name;
+  this.age = age;
+
+  this.ssn = function() {
+    return 'XXX-XX-' + String(ssn).slice(5);
+  }
+}
+
+const derek = new Person('Derek', 30, 123456789);
+derek.name;   // Derek
+derek.age;    // 30
+derek.ssn();  // XXX-XX-6789
+derek.ssn;    // [Function: (anonymous)]
+```
+
+# Modules
+
+https://launchschool.com/gists/e7d0531f
+
+## Need to Know
+
+- The benefits of using modules.
+- How to use and create CommonJS modules.
+- How CommonJS modules pass exported items to the importing module.
+
+- **Modules** allow programmers to divide functionality of a project into multiple files within a system, allowing for better abstraction of code and a more efficient building process. Because parts of the code are isolated, developers are able to maintain multiple aspects of the codebase without any fear of conflicts.
+
+## CommonJS
+
+- The **CommonJS Module Syntax** is one of the oldest implementations of module support within JavaScript, utilizing the `require` keyword to import functionality from one file to another.
+
+```js
+// greet.js
+function greet() {
+  console.log('Hello, world!');
+}
+
+module.exports = greet;
+
+// main.js
+const greet = require('./greet');
+greet();  // Hello, world!
+```
+
+### Variables
+
+- `module` => Object that represents the current module
+- `exports` => Names exported by module
+- `require` => Loads a module
+- `__dirname` => Absolute pathname of directory that contains module
+- `__filename` => Absolute pathname of file that contains module
+
+
+
