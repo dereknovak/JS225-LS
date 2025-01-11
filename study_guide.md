@@ -35,6 +35,7 @@
     - [Prototypal Objects]()
     - [Behavior Delegation]()
         - [Prototype Chain]()
+        - [Overriding Behavior]()
         - [super]()
 - [Modules](#modules)
     - [CommonJS](#commonjs)
@@ -63,29 +64,6 @@
     - Prototype objects
     - Behavior delegation
 - Modules
-
-## Scott SPOT
-const walkMixin = {
-  walk() {
-    return "Let's go for a walk!";
-  }
-}
-
-class Cat {
-  constructor(name) {
-    this.name = name;
-  }
-
-  greet() {
-    return `Hello! My name is ${this.name}!`;
-  }
-}
-// Assigning the mixin to the Cat prototype object.
-Object.assign(Cat.prototype, walkMixin);
-
-let kitty = new Cat("Sophie");
-console.log(kitty.greet());
-console.log(kitty.walk()); // Cat objects can now use walk() from the mixin
 
 ## Reading
 
@@ -795,6 +773,44 @@ derek.ssn();  // XXX-XX-6789
 derek.ssn;    // [Function: (anonymous)]
 ```
 
+## Behavior Delegation
+
+https://launchschool.com/lessons/24a4613a/assignments/7143264c
+
+### super
+
+```js
+class Person {
+  constructor(name) {
+    this.name = name;
+  }
+}
+
+class Musician extends Person {
+  constructor(name, instrument) {
+    super(name);
+    this.instrument = instrument;
+  }
+
+  play() {
+    return 'Playing';
+  }
+}
+
+class Student extends Musician {
+  constructor(name, instrument, grade) {
+    super(name, instrument);
+    this.grade = grade;
+  }
+
+  play() {
+    return super.play() + ' and Learning';
+  }
+}
+
+const derek = new Student('Derek', 'clarinet', 11);
+console.log(derek.play());
+```
 # Modules
 
 https://launchschool.com/gists/e7d0531f
@@ -832,5 +848,31 @@ greet();  // Hello, world!
 - `__dirname` => Absolute pathname of directory that contains module
 - `__filename` => Absolute pathname of file that contains module
 
+## Mixin
 
+- Do not need to know for assessment.
+
+```js
+const walkMixin = {
+  walk() {
+    return "Let's go for a walk!";
+  }
+}
+
+class Cat {
+  constructor(name) {
+    this.name = name;
+  }
+
+  greet() {
+    return `Hello! My name is ${this.name}!`;
+  }
+}
+// Assigning the mixin to the Cat prototype object.
+Object.assign(Cat.prototype, walkMixin);
+
+let kitty = new Cat("Sophie");
+console.log(kitty.greet());
+console.log(kitty.walk()); // Cat objects can now use walk() from the mixin
+```
 
