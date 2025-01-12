@@ -5,13 +5,13 @@
 - [Objects]()
     - [Organizing Code]()
     - [Object Factories](#object-factories)
-- [Execution Context]()
+- [Execution Context](#execution-context)
     - [this](#this)
     - [Implicit Execution Context](#implicit-context)
     - [Explicit Execution Context](#execution-context)
     - [Context Loss](#context-loss)
-    - [Lexical Scope]()
-- [Scope and Closures]()
+    - [Lexical Scope](#lexical-scope)
+- [Scope and Closures](#scope-and-closures)
     - [Higher-order Functions](#higher-order-functions)
     - [Private Data](#private-data)
     - [Garbage Collection](#garbage-collection)
@@ -34,9 +34,9 @@
     - [Encapsulation](#encapsulation)
     - [Prototypal Objects]()
     - [Behavior Delegation]()
-        - [Prototype Chain]()
-        - [Overriding Behavior]()
-        - [super]()
+        - [Prototype Chain](#prototype-chain)
+        - [Overriding Behavior](#overriding-behavior)
+        - [super](#super)
 - [Modules](#modules)
     - [CommonJS](#commonjs)
         - [Variables](#variables)
@@ -290,6 +290,53 @@ const cookieMonster = {
 cookieMonster.eat(['Peanut Butter', 'Chocolate Chip']);
 ```
 
+## Lexical Scope
+
+### Closures
+
+- **Closures** capture a snapshot of all relevant data within the *lexical scope* of an object at the point of definition. Even after invocation of the enclosing function is complete, so long as a reference to the object with the closure remains, the closure and its reference do as well.
+
+```js
+function makeSandwich() {
+  const ingredients = ['Bread', 'Turkey', 'Cheese', 'Mayonaise'];
+
+  return {
+    includes(item) {
+      return ingredients.includes(item);
+    },
+  };
+}
+
+const sandwich = makeSandwich();
+sandwich.includes('Bread');   // true
+sandwich.includes('Turkey');  // true
+sandwich.includes('Ham');     // false
+```
+>Although invocation of `makeSandwich` is completed on line 11, the returned object literal from the function remains as a reference from `sandwich`. Because the `includes` method of this object relies on the `ingredients` array, it is included in the method's closure, allowing the array to be referenced at a later time.
+
+### Arrow Functions
+
+- Arrow functions do *not* have their own `this` binding; instead, they inherit execution context from the enclosing function where they are defined.
+
+```js
+const chad = {
+  name: 'Chad',
+  say() {
+    const hello = () => console.log(`Hello, I'm ${this.name}.`);
+    hello();
+  },
+}
+
+const chuck = {
+  name: 'Chuck',
+}
+
+chuck.say = chad.say;
+
+chad.say();   // Hello, I'm Chad.
+chuck.say();  // Hello, I'm Chuck.
+```
+
 # Scope and Closures
 
 ## Higher-Order Functions
@@ -507,6 +554,7 @@ Musician (instance) = {
 - The `[[Prototype]]` property is built-in with every object in JavaScript and references the object's prototype.
 - Use `Object.getPrototypeOf` to find immediate relative on prototype chain.
 - Use `Object.prototype.isPrototypeOf` to see if an object is anywhere on the prototype chain.
+- Use `Object.prototype.hasOwnProperty` to determine if the origin of a property belongs to the calling object.
 
 - Prototype references:
 1. Constructor Function => Function.prototype
@@ -777,7 +825,45 @@ derek.ssn;    // [Function: (anonymous)]
 
 https://launchschool.com/lessons/24a4613a/assignments/7143264c
 
+### Prototype Chain
+
+- The **prototype chain** is a mechanism of inheritance that JavaScript uses to determine which attributes and behaviors belong to an object. Every object has a `[[Prototype]]` property that points to a different object, providing additional functionality.
+- See [Prototype](#prototype) for more info and relevant methods.
+
+### Overriding Behavior
+
+- When a child's method shares a name with one of the parent's method, the invocation will *override* the behavior of the parent. This is due to how JavaScript handles property lookup - it finds the first occurrence within the prototypal chain.
+
+```js
+function Animal() {
+}
+
+Animal.prototype.speak = function() {
+  console.log('Animal noises');
+};
+
+function Dog() {
+}
+
+Object.setPrototypeOf(Dog.prototype, Animal.prototype);
+
+const sparky = new Dog();
+sparky.speak();  // Animal noises
+
+Dog.prototype.speak = function() {
+  console.log('Woof!');
+};
+
+sparky.speak();  // Woof!
+```
+
 ### super
+
+https://launchschool.com/books/oo_javascript/read/classes
+
+- The `super` keyword is used to invoke the same instance method from a class's superclass.
+- When used in the constructor method, only `super` is required.
+- When used in any other method, `super` must be appended with the respective method.
 
 ```js
 class Person {
