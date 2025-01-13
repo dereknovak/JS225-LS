@@ -128,7 +128,7 @@ dog.bark();  // Sparky says hello!
 
 ## Implicit Context
 
-- The **implicit execution context** is, by default, the calling object of a function or method invocation. While method invocations will typically have a clear calling object, functions utilize the global object.
+- The **implicit execution context** is the context (`this`) that is set by default when a function or method is invoked without explicit context. While method invocations will typically reference the object in which the method is located, functions utilize the global object (or `undefined` in strict mode).
 
 ```js
 const cat = {
@@ -164,7 +164,7 @@ greet();  // TypeError: Cannot read properties of undefined
 
 ## Explicit Context
 
-- **Explicit execution context** can be provided using either `call`, `apply`, or `bind` to invoke a method with *explicit* context. Rather than using the default implicit context, one is provided as an argument to these methods.
+- **Explicit execution context** can be provided to a function or method invocation by using either `call`, `apply`, or `bind` to invoke it with *explicit* context. Rather than using the default context, one is provided as an argument to these methods that will override the implicit context.
 
 ```js
 const person = {
@@ -211,6 +211,7 @@ person.count(1, 5);              // Jimmy is counting from 1-5. (unaffected)
 1. Invoking a function that has been removed from its original object
 2. Invoking a nested function
 3. Invoking a function passed as an argument
+4. Invoking a constructor function with the `new` keyword
 
 - Fixes
 1. Arrow Notation
@@ -294,7 +295,7 @@ cookieMonster.eat(['Peanut Butter', 'Chocolate Chip']);
 
 ### Closures
 
-- **Closures** capture a snapshot of all relevant data within the *lexical scope* of an object at the point of definition. Even after invocation of the enclosing function is complete, so long as a reference to the object with the closure remains, the closure and its reference do as well.
+- **Closures** retains access to relevant variables within the *lexical scope* of an object at the point of definition, allowing it to be carried alongside the object and accessed at a later time. Even after invocation of the enclosing function is complete, so long as a reference to the object with the closure remains, the closure and its reference do as well.
 
 ```js
 function makeSandwich() {
@@ -409,7 +410,7 @@ counter();  // 2
 
 ## IIFEs
 
-- **Immediately Invoked Function Expressions** (IIFEs) are functions that are immediately invoked upon defintion, allowing an isolated scope containing variables and functions to be made and executed without fear of polluting the global scope.
+- **Immediately Invoked Function Expressions** (IIFEs) are functions that are immediately invoked upon defintion, allowing an isolated scope containing variables and functions to be made and executed without polluting the global scope.
 - IIFEs can only be invoked using a function expression.
 
 ```js
@@ -426,6 +427,55 @@ console.log(generateTicket());  // 2
 console.log(generateTicket());  // 3
 ```
 
+### Private Scope
+
+https://launchschool.com/lessons/0b371359/assignments/f27fd52c
+
+- IIFEs are useful in creating a *private scope* that allows for code execution that will not be affected by previous or further operations, such as object mutation/reassignment or naming collisions.
+
+```js
+// Lots of code
+
+(function() {
+  const derek = {
+    name: 'Derek',
+    age: 30,
+  }
+
+  console.log(`My name is ${derek.name} and I'm ${derek.age} years old.`);
+})();
+
+// More code
+```
+>Because an *anonymous function* is immediately invoked within the codebase, a new scope is created that contains its own version of `derek`, allowing for an isolated code execution that will not pollute nor cause any potential errors from variables with the same name.
+
+### Private Data
+
+https://launchschool.com/lessons/0b371359/assignments/470d67c3
+
+- Because IIFEs immediately create and execute a new function scope, a closure can be created that forms private data, restricting access to desired information from outside of the anonymous function.
+
+```js
+const overdueBooks = (() => {
+  const books = ['Moby Dick', 'Hunger Games', 'Mistborn'];
+
+  return {
+    count() {
+      return books.length; 
+    },
+
+    add(bookName) {
+      books.push(bookName);
+    },
+  }
+})();
+
+overdueBooks.count();  // 3
+overdueBooks.add('Project: Hail Mary');
+overdueBooks.count();  // 4
+```
+>Because `overdueBooks` references an IIFE, the `books` array is made private as only the returned object contains references to it via the `count` and `add` methods. The user outside of the object cannot directly reference `books`, however both methods can access the array as the `books` pointer is included in their closures.
+
 ## Partial Function Application
 
 - **Partial Function Application** is the process in which a function is defined that calls a second function, accepting less arguments than that function expects. This is achieved through the use of pre-determined values to use as the remaining arguments upon invocation of the partial function.
@@ -434,17 +484,17 @@ console.log(generateTicket());  // 3
 - "Partial function application requires a reduction in the number of arguments you have to provide when you call a function."
 
 ```js
-function greet(greeting, person) {
+function greet(greeting, person) {              // Primary
   console.log(greeting + ', ' + person);
 }
 
-function greetingGenerator(greeting) {
+function greetingGenerator(greeting) {          // Generator
   return function(person) {
     greet(greeting, person);
   }
 }
 
-let sayHello = greetingGenerator('Hello');
+let sayHello = greetingGenerator('Hello');      // Applicator
 let sayGoodbye = greetingGenerator('Goodbye');
 
 sayHello('Derek');   // Hello, Derek
