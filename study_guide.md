@@ -112,7 +112,7 @@ const toyota = makeCar('Toyota', 'Camry');
 
 ## this
 
-- The reserved `this` keyword represents the *execution context*, or the context of the calling object, that is used upon invocation of a method.
+- The reserved `this` keyword represents the *execution context*, or the object that is currently used for context, at the point of code execution.
 
 ```js
 const dog = {
@@ -295,7 +295,7 @@ cookieMonster.eat(['Peanut Butter', 'Chocolate Chip']);
 
 ### Closures
 
-- **Closures** retains access to relevant variables within the *lexical scope* of an object at the point of definition, allowing it to be carried alongside the object and accessed at a later time. Even after invocation of the enclosing function is complete, so long as a reference to the object with the closure remains, the closure and its reference do as well.
+- **Closures** retain access to relevant variables within the *lexical scope* of an object at the point of definition, allowing it to be carried alongside the object and accessed at a later time. Even after invocation of the enclosing function is complete, so long as a reference to the object with the closure remains, the closure and its references do as well.
 
 ```js
 function makeSandwich() {
@@ -360,11 +360,11 @@ luckyNumberFive();   // 5
 
 ## Private Data
 
-- *Closures* provide the ability to hide data and functionality from a returned object
+- *Closures* provide the ability to hide data and functionality from a returned object.
 
 - Hide Functionality
 ```js
-function shootArrow() {
+function newQuiver() {
   let arrows = 3;
 
   return function() {
@@ -375,8 +375,8 @@ function shootArrow() {
   }
 }
 
-const fireBow1 = shootArrow();
-const fireBow2 = shootArrow();
+const fireBow1 = newQuiver();
+const fireBow2 = newQuiver();
 
 fireBow1(); // You have 2 left
 fireBow1(); // You have 1 left
@@ -601,7 +601,7 @@ Musician (instance) = {
 
 ### [[Prototype]]
 
-- The `[[Prototype]]` property is built-in with every object in JavaScript and references the object's prototype.
+- `[[Prototype]]` is an internal slot built-in with every object in JavaScript that references the object's prototype, allowing for *prototype chaining*.
 - Use `Object.getPrototypeOf` to find immediate relative on prototype chain.
 - Use `Object.prototype.isPrototypeOf` to see if an object is anywhere on the prototype chain.
 - Use `Object.prototype.hasOwnProperty` to determine if the origin of a property belongs to the calling object.
