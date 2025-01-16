@@ -30,17 +30,18 @@
         return samples;
       },
 
-      findWhere(compareObj) {
-        return element.sort(obj1 => {
-          let matches = 0;
+      findWhere(obj2) {
+        const singleMatches = [];
 
+        return element.find(obj1 => {
+          let matches = 0;
+          
           for (let prop in obj1) {
             if (obj1[prop] === obj2[prop]) matches++;
+            if (matches === 1) singleMatches.push(obj1);
             if (matches > 1) return true;
           }
-        });
-
-        // Need to finish
+        }) ?? singleMatches[0];
       },
     };
 
